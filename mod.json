@@ -1,0 +1,231 @@
+{
+	"geode": "4.2.0",
+	"gd": {
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074"
+	},
+	"id": "nwo5.better_move_buttons",
+	"name": "Better Move Buttons",
+	"version": "v1.0.0",
+	"developer": "Nwo5",
+	"description": "Redesigned layout for the edit tab.",
+	"tags": ["editor", "enhancement", "offline"],
+	"resources": {
+		"sprites": [
+			"resources/*"
+		]
+	},
+	"links": {
+		"source": "https://github.com/Nwo5-trg/Better-Move-Buttons"
+	},
+	"settings": {
+		"general-title": {
+			"type": "title",
+			"name": "General"
+		},
+		"default-step": {
+			"type": "float",
+			"name": "Default Steps",
+			"description": "How many steps to move by default.",
+			"min": 1,
+			"max": 3000,
+			"default": 30
+		},
+		"page-button-buffer": {
+			"type": "float",
+			"name": "Page Button Buffer",
+			"description": "Distance page arrow buttons will be from normal buttons.",
+			"min": 0,
+			"max": 50,
+			"default": 12.5
+		},
+		"step-input-scale": {
+			"type": "float",
+			"name": "Step Input Size",
+			"min": 0,
+			"max": 2,
+			"default": 0.8
+		},
+		"enable-override-rows": {
+			"type": "bool",
+			"name": "Override Rows",
+			"description": "Use a different row amount for the edit tab than the setting.",
+			"default": false
+		},
+		"override-rows": {
+			"type": "int",
+			"name": "Override",
+			"min": 6,
+			"max": 12,
+			"default": 11,
+			"enable-if": "enable-override-rows"
+		},
+		"swap-step-input-side": {
+			"type": "bool",
+			"name": "Swap Step input Side",
+			"default": false
+		},
+		"step-buttons-title": {
+			"type": "title",
+			"name": "Step Buttons",
+			"description": "Labels and step amounts for step buttons. (30 steps = 1 block)"
+		},
+		"step-one-label": {
+			"type": "string",
+			"name": "Step Button 1 Label",
+			"filter": "abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/. ",
+			"default": "1/30"
+		},
+		"step-one-value": {
+			"type": "float",
+			"name": "Step Button 1 Steps",
+			"min": 1,
+			"max": 3000,
+			"default": 1,
+			"control": {
+				"arrow-step": 0.5
+			}
+		},
+		"step-two-label": {
+			"type": "string",
+			"name": "Step Button 2 Label",
+			"filter": "abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/. ",
+			"default": "1/10"
+		},
+		"step-two-value": {
+			"type": "float",
+			"name": "Step Button 2 Steps",
+			"min": 1,
+			"max": 3000,
+			"default": 3,
+			"control": {
+				"arrow-step": 0.5
+			}
+		},
+		"step-three-label": {
+			"type": "string",
+			"name": "Step Button 3 Label",
+			"filter": "abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/. ",
+			"default": "1/4"
+		},
+		"step-three-value": {
+			"type": "float",
+			"name": "Step Button 3 Steps",
+			"min": 1,
+			"max": 3000,
+			"default": 7.5,
+			"control": {
+				"arrow-step": 0.5
+			}
+		},
+		"step-four-label": {
+			"type": "string",
+			"name": "Step Button 4 Label",
+			"filter": "abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/. ",
+			"default": "1/2"
+		},
+		"step-four-value": {
+			"type": "float",
+			"name": "Step Button 4 Steps",
+			"min": 1,
+			"max": 3000,
+			"default": 15,
+			"control": {
+				"arrow-step": 0.5
+			}
+		},
+		"step-five-label": {
+			"type": "string",
+			"name": "Step Button 5 Label",
+			"filter": "abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/. ",
+			"default": "1"
+		},
+		"step-five-value": {
+			"type": "float",
+			"name": "Step Button 5 Steps",
+			"min": 1,
+			"max": 3000,
+			"default": 30,
+			"control": {
+				"arrow-step": 0.5
+			}
+		},
+		"step-six-label": {
+			"type": "string",
+			"name": "Step Button 6 Label",
+			"filter": "abcdefghijklmnopqrstuvwxyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890/. ",
+			"default": "2"
+		},
+		"step-six-value": {
+			"type": "float",
+			"name": "Step Button 6 Steps",
+			"min": 1,
+			"max": 3000,
+			"default": 150,
+			"control": {
+				"arrow-step": 0.5
+			}
+		},
+		"toggles-title": {
+			"type": "title",
+			"name": "Toggles",
+			"description": "Lets you toggle specific buttons on or off."
+		},
+		"disable-flip-x": {
+			"type": "bool",
+			"name": "Disable Flip X",
+			"default": false
+		},
+		"disable-flip-y": {
+			"type": "bool",
+			"name": "Disable Flip Y",
+			"default": false
+		},
+		"disable-rotate-cw": {
+			"type": "bool",
+			"name": "Disable Rotate CW",
+			"default": false
+		},
+		"disable-rotate-ccw": {
+			"type": "bool",
+			"name": "Disable Rotate CCW",
+			"default": false
+		},
+		"disable-rotate-cw-ff": {
+			"type": "bool",
+			"name": "Disable Rotate CW 45",
+			"default": false
+		},
+		"disable-rotate-ccw-ff": {
+			"type": "bool",
+			"name": "Disable Rotate CCW 45",
+			"default": false
+		},
+		"disable-free-rotate": {
+			"type": "bool",
+			"name": "Disable Free Rotate",
+			"default": false
+		},
+		"disable-snap-rotate": {
+			"type": "bool",
+			"name": "Disable Snap Rotate",
+			"default": false
+		},
+		"disable-scale": {
+			"type": "bool",
+			"name": "Disable Scale",
+			"default": false
+		},
+		"disable-scale-xy": {
+			"type": "bool",
+			"name": "Disable Scale XY",
+			"default": false
+		},
+		"disable-warp": {
+			"type": "bool",
+			"name": "Disable Warp",
+			"default": false
+		}
+	}
+}
