@@ -7,7 +7,7 @@
 	},
 	"id": "nwo5.better_move_buttons",
 	"name": "Better Move Buttons",
-	"version": "v1.0.0",
+	"version": "v1.0.1",
 	"developer": "Nwo5",
 	"description": "Redesigned layout for the edit tab.",
 	"tags": ["editor", "enhancement", "offline"],
@@ -63,8 +63,14 @@
 		},
 		"swap-step-input-side": {
 			"type": "bool",
-			"name": "Swap Step input Side",
+			"name": "Swap Step Input Side",
 			"default": false
+		},
+		"grid-dependent-step": {
+			"type": "bool",
+			"name": "Grid Dependent Step",
+			"description": "Instead of moving the object the exact amount of steps inputed, move the object dependent on it's grid size.",
+			"default": true
 		},
 		"step-buttons-title": {
 			"type": "title",

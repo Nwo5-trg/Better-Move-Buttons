@@ -6,62 +6,127 @@ using namespace geode::prelude;
 
 auto mod = Mod::get();
 
-void positionMenu(CCArray* array) {
-    auto extendedLayer = static_cast<CCNode*>(array->objectAtIndex(0))->getParent()->getParent()->getParent();
-    auto buttonBar = extendedLayer->getParent()->getParent();
-
-    for (int i = 0; i < extendedLayer->getChildrenCount(); i++) {
-        auto buttons = extendedLayer->getChildByType<ButtonPage>(i)->getChildByType<CCMenu>(0);
-        if (buttons) {
-            buttons->setPosition(ccp(285, 30.75));
-            buttons->setScale(0.55);
-        }
-    }
-
-    if (auto arrowMenu = buttonBar->getChildByType<CCMenu>(1)) {
-        auto leftArrow = arrowMenu->getChildByType<CCMenuItemSpriteExtra>(0);
-        auto rightArrow = arrowMenu->getChildByType<CCMenuItemSpriteExtra>(1);
-        auto buttonAmount = mod->getSettingValue<bool>("enable-override-rows") ? mod->getSettingValue<int64_t>("override-rows") : GameManager::sharedState()->getIntGameVariable("0049");
-        float buffer = mod->getSettingValue<double>("page-button-buffer");
-        
-        leftArrow->setPosition(ccp(285 - (((22 + 2.75) / 2) * buttonAmount) - buffer, 20));
-        leftArrow->setScale(0.75);
-        leftArrow->m_baseScale = 0.75;
-        
-        rightArrow->setPosition(ccp(285 + (((22 + 2.75) / 2) * buttonAmount) + buffer, 20));
-        rightArrow->setScale(0.75);
-        rightArrow->m_baseScale = 0.75;
-    }
-    
-    if (auto arrowMenu = buttonBar->getChildByType<CCMenu>(2)) { // for some reason a second set of arrows gets made sometimes idk
-        arrowMenu->setVisible(false);
-    }
-}
-
-void setFixedID (CCArray* array) { // still makes node ids not work but atleast they arent stupid
-    for (int i = 0; i < array->count(); i++) {
-        auto obj = static_cast<CCNode*>(array->objectAtIndex(i));
-        obj->setID(fmt::format("button-index-{}", i));
-    }
-}
-
 class $modify(EditUI, EditorUI) {
     struct Fields {
         float moveIncrement;
         TextInput* stepInput; 
     };
+    
+    void changeMoveIncrement(CCObject* sender) {
+        int index = std::stoi(static_cast<CCNode*>(sender)->getChildByType<CCNode>(1)->getID());
+        double value[] = {
+            mod->getSettingValue<double>("step-one-value"),
+            mod->getSettingValue<double>("step-two-value"),
+            mod->getSettingValue<double>("step-three-value"),
+            mod->getSettingValue<double>("step-four-value"),
+            mod->getSettingValue<double>("step-five-value"),
+            mod->getSettingValue<double>("step-six-value")
+        };
+        m_fields->moveIncrement = value[index - 1];
+        updateStepLabel();
+    };
 
-    static void onModify(auto& self){
-        (void)self.setHookPriorityPost("EditorUI::init", geode::Priority::Last);
+    void moveHandler(CCObject* sender) {
+        int direction = stoi(static_cast<CCNode*>(sender)->getChildByType<CCNode>(1)->getID());
+        float grid = m_gridSize;
+        float step = mod->getSettingValue<bool>("grid-dependent-step") ? m_fields->moveIncrement / (30 / grid) : m_fields->moveIncrement;
+
+
+        CCPoint move[] = {
+            ccp(0, 0),
+            ccp(0, step),
+            ccp(step, step),
+            ccp(step, 0),
+            ccp(step, -step),
+            ccp(0, -step),
+            ccp(-step, -step),
+            ccp(-step, 0),
+            ccp(-step, step),
+        };
+
+        auto objs = this->getSelectedObjects();
+
+        for (int i = 0; i < objs->count(); i++) {
+            this->moveObject(static_cast<GameObject*>(objs->objectAtIndex(i)), move[direction]);
+        }
     }
 
-    bool init(LevelEditorLayer* lel) {
-        if (!EditorUI::init(lel)) return false;
-        positionMenu(m_editButtonBar->m_buttonArray);
-        setFixedID(m_editButtonBar->m_buttonArray);
+    void updateStepLabel() {
+        std::stringstream stringStream; // code yoinked from scale input
+        stringStream << std::fixed << std::setprecision(3) << m_fields->moveIncrement;
+        std::string string = stringStream.str();
 
+        string.erase(string.find_last_not_of('0') + 1, std::string::npos);
+        if (string.back() == '.') string.pop_back();
+        m_fields->stepInput->setString(string.c_str(), false);
+    }
+
+    void setupMenu() {
+        if (m_editButtonBar->m_buttonArray->count() > 30) {
+            for (int i = 0; i < 20; i++) {
+                m_editButtonBar->m_buttonArray->removeObjectAtIndex(0);
+            }
+            CCArray removalArray;
+            std::vector<std::tuple<std::string, std::string, int>> settings = {
+                {"disable-flip-x", "flip-x-button", 0},
+                {"disable-flip-y", "flip-y-button", 1},
+                {"disable-rotate-cw", "rotate-cw-button", 2},
+                {"disable-rotate-ccw", "rotate-ccw-button", 3},
+                {"disable-rotate-cw-ff", "rotate-cw-45-button", 4},
+                {"disable-rotate-ccw-ff", "rotate-ccw-45-button", 5},
+                {"disable-free-rotate", "rotate-free-button", 6},
+                {"disable-snap-rotate", "rotate-snap-button", 7},
+                {"disable-scale", "scale-button", 8},
+                {"disable-scale-xy", "scale-xy-button", 9},
+                {"disable-warp", "warp-button", 10}
+            };
+            
+            for (auto& [setting, id, index] : settings) {
+                if (mod->getSettingValue<bool>(setting)) removalArray.addObject(m_editButtonBar->m_buttonArray->objectAtIndex(index));
+                if (Loader::get()->getLoadedMod("geode.node-ids")) static_cast<CCNode*>(m_editButtonBar->m_buttonArray->objectAtIndex(index))->setID(id); //node ids compatibility?
+            }
+            for (int i = 0; i < removalArray.count(); i++) {
+                m_editButtonBar->m_buttonArray->removeObject(removalArray.objectAtIndex(i));
+            }
+        }
+
+        m_editButtonBar->reloadItems(mod->getSettingValue<bool>("enable-override-rows") ? mod->getSettingValue<int64_t>("override-rows") : GameManager::sharedState()->getIntGameVariable("0049"), 1);
+        
+        auto extendedLayer = static_cast<CCNode*>(m_editButtonBar->m_buttonArray->objectAtIndex(0))->getParent()->getParent()->getParent();
+
+        for (int i = 0; i < extendedLayer->getChildrenCount(); i++) {
+            auto buttons = extendedLayer->getChildByType<ButtonPage>(i)->getChildByType<CCMenu>(0);
+            if (buttons) {
+                buttons->setPosition(ccp(285, 30.75));
+                buttons->setScale(0.55);
+            }
+        }
+
+        if (auto arrowMenu = m_editButtonBar->getChildByType<CCMenu>(1)) {
+            auto leftArrow = arrowMenu->getChildByType<CCMenuItemSpriteExtra>(0);
+            auto rightArrow = arrowMenu->getChildByType<CCMenuItemSpriteExtra>(1);
+            auto buttonAmount = mod->getSettingValue<bool>("enable-override-rows") ? mod->getSettingValue<int64_t>("override-rows") : GameManager::sharedState()->getIntGameVariable("0049");
+            float buffer = mod->getSettingValue<double>("page-button-buffer");
+            
+            leftArrow->setPosition(ccp(285 - (((22 + 2.75) / 2) * buttonAmount) - buffer, 20));
+            leftArrow->setScale(0.75);
+            leftArrow->m_baseScale = 0.75;
+            
+            rightArrow->setPosition(ccp(285 + (((22 + 2.75) / 2) * buttonAmount) + buffer, 20));
+            rightArrow->setScale(0.75);
+            rightArrow->m_baseScale = 0.75;
+        }
+
+        if (auto arrowMenu = m_editButtonBar->getChildByType<CCMenu>(2)) { // for some reason a second set of arrows gets made sometimes idk
+            arrowMenu->setVisible(false);
+        }
+    }
+
+    void createNewMoveButtons() {
+        if (this->getChildByIDRecursive("better-move-buttons-menu")) return;
         auto mainMenu = CCMenu::create();
         mainMenu->setPosition(ccp(-285, 0));
+        mainMenu->setID("better-move-buttons-menu");
         auto cardinalArrowsMenu = CCMenu::create();
         // cardinalArrowsMenu->setPosition(ccp(116.5, 18));
         cardinalArrowsMenu->setPosition(ccp(191, 18));
@@ -158,95 +223,21 @@ class $modify(EditUI, EditorUI) {
         setupStepButton(4, ccp(30, 30));
         setupStepButton(5, ccp(60, 30));
         setupStepButton(6, ccp(90, 30));
-
-        return true;
-    }
-    void changeMoveIncrement(CCObject* sender) {
-        int index = std::stoi(static_cast<CCNode*>(sender)->getChildByType<CCNode>(1)->getID());
-        double value[] = {
-            mod->getSettingValue<double>("step-one-value"),
-            mod->getSettingValue<double>("step-two-value"),
-            mod->getSettingValue<double>("step-three-value"),
-            mod->getSettingValue<double>("step-four-value"),
-            mod->getSettingValue<double>("step-five-value"),
-            mod->getSettingValue<double>("step-six-value")
-        };
-        m_fields->moveIncrement = value[index - 1];
-        updateStepLabel();
-    };
-
-    void moveHandler(CCObject* sender) {
-        int direction = stoi(static_cast<CCNode*>(sender)->getChildByType<CCNode>(1)->getID());
-
-        CCPoint move[] = {
-            ccp(0, 0),
-            ccp(0, m_fields->moveIncrement),
-            ccp(m_fields->moveIncrement, m_fields->moveIncrement),
-            ccp(m_fields->moveIncrement, 0),
-            ccp(m_fields->moveIncrement, -m_fields->moveIncrement),
-            ccp(0, -m_fields->moveIncrement),
-            ccp(-m_fields->moveIncrement, -m_fields->moveIncrement),
-            ccp(-m_fields->moveIncrement, 0),
-            ccp(-m_fields->moveIncrement, m_fields->moveIncrement),
-        };
-
-        auto objs = this->getSelectedObjects();
-
-        for (int i = 0; i < objs->count(); i++) {
-            this->moveObject(static_cast<GameObject*>(objs->objectAtIndex(i)), move[direction]);
-        }
-    }
-
-    void updateStepLabel() {
-        std::stringstream stringStream; // code yoinked from scale input
-        stringStream << std::fixed << std::setprecision(3) << m_fields->moveIncrement;
-        std::string string = stringStream.str();
-
-        string.erase(string.find_last_not_of('0') + 1, std::string::npos);
-        if (string.back() == '.') string.pop_back();
-        m_fields->stepInput->setString(string.c_str(), false);
     }
 };
 
 class $modify(Tab, EditButtonBar) {
-    void reloadItems(int rowCount, int columnCount) {
-        // robtop what the fuck is your code why do i have to modify two tabs for the edit tab what????
+    void loadFromItems(CCArray* p0, int p1, int p2, bool p3) {
+        EditButtonBar::loadFromItems(p0, p1, p2, p3);
+
         if (m_tabIndex == -1 && !m_hasCreateItems && m_buttonArray->count() != 0) {
-            EditButtonBar::reloadItems(mod->getSettingValue<bool>("enable-override-rows") ? mod->getSettingValue<int64_t>("override-rows") : rowCount, 1);
-            positionMenu(m_buttonArray);
+            CCDirector::sharedDirector()->getScheduler()->scheduleSelector(
+            schedule_selector(Tab::reloadItemsWorkaround), this, 0, false, 0, false);
         }
-        else if (m_tabIndex == 0 && !m_hasCreateItems && m_buttonArray->count() != 0) {
-            EditButtonBar::reloadItems(mod->getSettingValue<bool>("enable-override-rows") ? mod->getSettingValue<int64_t>("override-rows") : rowCount, 1);
-            if (m_buttonArray->count() <= 20) return; // make mods adding extra buttons not crash
-            for (int i = 0; i < 20; i++) {
-                m_buttonArray->removeObjectAtIndex(0);
-            }
-            CCArray removalArray;
-            std::vector<std::pair<std::string, int>> settings = {
-                {"disable-flip-x", 0},
-                {"disable-flip-y", 1},
-                {"disable-rotate-cw", 2},
-                {"disable-rotate-ccw", 3},
-                {"disable-rotate-cw-ff", 4},
-                {"disable-rotate-ccw-ff", 5},
-                {"disable-free-rotate", 6},
-                {"disable-snap-rotate", 7},
-                {"disable-scale", 8},
-                {"disable-scale-xy", 9},
-                {"disable-warp", 10}
-            };
-            
-            for (auto& [setting, index] : settings) {
-                if (mod->getSettingValue<bool>(setting)) removalArray.addObject(m_buttonArray->objectAtIndex(index));
-            }
-            for (int i = 0; i < removalArray.count(); i++) {
-                m_buttonArray->removeObject(removalArray.objectAtIndex(i));
-            }
-            positionMenu(m_buttonArray);
-            setFixedID(m_buttonArray);
-        }
-        else {
-            EditButtonBar::reloadItems(rowCount, columnCount);
-        }
+    }
+
+    void reloadItemsWorkaround() {
+        static_cast<EditUI*>(EditorUI::get())->setupMenu();
+        static_cast<EditUI*>(EditorUI::get())->createNewMoveButtons();
     }
 };
