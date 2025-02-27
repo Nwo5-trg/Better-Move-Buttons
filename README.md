@@ -8,4 +8,7 @@ Current features:
 - Independent row length for the edit tab
 - Probably compatible with mods that add edit tab buttons* (I've tested with a few and it works fine)
 
+Example of the mod:
+![modexample](https://raw.githubusercontent.com/Nwo5-trg/Better-Move-Buttons/refs/heads/main/resources/example.png)
+
 **If you're using this with BetterEdit, turn off it's custom edit tab feature, it will probably break this mod.**
